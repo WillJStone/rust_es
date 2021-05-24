@@ -1,8 +1,8 @@
 use rand;
 
 use ndarray::{Array, Dim};
-use ndarray_rand::{RandomExt, rand_distr::Distribution};
-use ndarray_rand::rand_distr::{Normal, Uniform};
+use ndarray_rand::{rand_distr::Distribution};
+use ndarray_rand::rand_distr::{Normal};
 
 
 pub fn random_gaussian_vector(shape: usize, mu: f32, sigma: f32) -> Array<f32, Dim<[usize; 1]>> {
@@ -14,6 +14,14 @@ pub fn random_gaussian_vector(shape: usize, mu: f32, sigma: f32) -> Array<f32, D
         .collect();
 
     Array::from(vec)
+}
+
+
+pub fn argsort<T: Ord>(v: &Array<T, Dim<[usize; 1]>>) -> Array<usize, Dim<[usize; 1]>> {
+    let mut idx = (0..v.len()).collect::<Vec<_>>();
+    idx.sort_unstable_by(|&i, &j| v[i].cmp(&v[j]));
+    
+    Array::from(idx)
 }
 
 
