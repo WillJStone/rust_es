@@ -1,7 +1,10 @@
+use std::cmp;
+
 use ndarray::{Array, Dim};
+use partial_min_max::max;
 use rayon::prelude::*;
 
-use crate::utils::{argsort, random_gaussian_vector};
+use crate::utils::{argsort, random_gaussian_vector, reorder_array};
 use crate::evaluator::Function;
 
 
@@ -33,6 +36,22 @@ impl<T: Function + Clone + Sync> NES<T> {
         }
     }
 
+    fn utility_function(&self) -> Array<f32, Dim<[usize; 1]>> {
+        let mut utility: Vec<f32> = Vec::new();
+        let mut u: f32;
+        for k in 0..self.population_size {
+            u = max(0., (self.population_size as f32/2. + 1.).ln()) - (k as f32 + 1.).ln();
+            utility.push(u);
+        }
+
+        utility = utility
+            .iter()
+            .map(|u| *u / utility.iter().sum::<f32>() - 1./self.population_size as f32)
+            .collect();
+
+        Array::from(utility)
+    }
+
     pub fn step(&mut self) -> Array<f32, Dim<[usize; 1]>> {
         let mut population: Vec<Array<f32, Dim<[usize; 1]>>> = Vec::new();
         for _ in 0..self.population_size { 
@@ -42,12 +61,18 @@ impl<T: Function + Clone + Sync> NES<T> {
             population.push(z);
         }
 
+
         let fitness: Vec<f32> = population
             .par_iter_mut()
             .map(|x| self.callable.clone().call(x.clone()))
             .collect();
 
-        Array::from(fitness)
+        let fitness = Array::from(fitness);
+        let order = argsort(&fitness);
+        let ordered_fitness = reorder_array(&fitness, &order);
+
+        fitness
+
     }
 }
 
@@ -75,14 +100,14 @@ mod tests {
 
     #[test]
     fn test_nes_new() {
-        let mu = random_gaussian_vector(2, 0., 1.);
+        let mu = Array::from(vec![1., 1.]);
         let sigma = Array::from(vec![1., 1.]);
         let nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1);
     }
 
     #[test]
     fn test_step() {
-        let mu = random_gaussian_vector(2, 0., 1.);
+        let mu = Array::from(vec![1., 1.]);
         let sigma = Array::from(vec![1., 1.]);
         let mut nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1);
 
