@@ -39,6 +39,7 @@ fn main() {
         10, 
         0.9, 
         0.1,
+        false,
     );
 
     let fitness = nes.step();

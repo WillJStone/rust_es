@@ -1,10 +1,10 @@
 use std::cmp;
 
-use ndarray::{Array, Dim};
+use ndarray::{Array, Axis, Dim, ViewRepr, concatenate};
 use partial_min_max::max;
 use rayon::prelude::*;
 
-use crate::utils::{argsort, random_gaussian_vector, reorder_array};
+use crate::utils::{argsort, random_gaussian_matrix, random_gaussian_vector, reorder_array};
 use crate::evaluator::Function;
 
 
@@ -15,6 +15,7 @@ pub struct NES<T: Function + Clone + Sync> {
     population_size: usize,
     learning_rate_mu: f32, 
     learning_rate_sigma: f32,
+    fitness_shaping: bool,
 }
 
 
@@ -25,7 +26,8 @@ impl<T: Function + Clone + Sync> NES<T> {
         sigma: Array<f32, Dim<[usize; 1]>>,
         population_size: usize,
         learning_rate_mu: f32,
-        learning_rate_sigma: f32) -> NES<T> {
+        learning_rate_sigma: f32,
+        fitness_shaping: bool) -> NES<T> {
         NES {
             callable,
             mu,
@@ -33,6 +35,7 @@ impl<T: Function + Clone + Sync> NES<T> {
             population_size,
             learning_rate_mu,
             learning_rate_sigma,
+            fitness_shaping,
         }
     }
 
@@ -53,14 +56,19 @@ impl<T: Function + Clone + Sync> NES<T> {
     }
 
     pub fn step(&mut self) -> Array<f32, Dim<[usize; 1]>> {
-        let mut population: Vec<Array<f32, Dim<[usize; 1]>>> = Vec::new();
-        for _ in 0..self.population_size { 
-            let noise = random_gaussian_vector(self.mu.len(), 0., 1.);
-            let scaled_noise: Array<f32, Dim<[usize; 1]>> = self.sigma.clone() * noise;
-            let z = self.mu.clone() + scaled_noise;
-            population.push(z);
-        }
+        let noise: Vec<Array<f32, Dim<[usize; 1]>>> = (0..self.population_size)
+            .map(|_| random_gaussian_vector(self.mu.len(), 0., 0.))
+            .collect();
 
+        let scaled_noise: Vec<Array<f32, Dim<[usize; 1]>>> = noise
+            .iter()
+            .map(|x| x * &self.sigma)
+            .collect();
+
+        let mut population: Vec<Array<f32, Dim<[usize; 1]>>> = scaled_noise
+            .iter()
+            .map(|x| &self.mu + x)
+            .collect();
 
         let fitness: Vec<f32> = population
             .par_iter_mut()
@@ -102,14 +110,14 @@ mod tests {
     fn test_nes_new() {
         let mu = Array::from(vec![1., 1.]);
         let sigma = Array::from(vec![1., 1.]);
-        let nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1);
+        let nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1, false);
     }
 
     #[test]
     fn test_step() {
         let mu = Array::from(vec![1., 1.]);
         let sigma = Array::from(vec![1., 1.]);
-        let mut nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1);
+        let mut nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1, false);
 
         let fitness = nes.step();
 
