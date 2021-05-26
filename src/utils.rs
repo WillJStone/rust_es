@@ -47,6 +47,30 @@ pub fn reorder_array<T: Copy>(array: &Array<T, Dim<[usize; 1]>>, order: &Array<u
 }
 
 
+pub fn reorder_vec<T: Clone, U: IntoIterator<Item=usize>>(vec: &Vec<T>, order: U) -> Vec<T> {
+    let new_vec: Vec<T> = order
+        .into_iter()
+        .map(|i| vec[i].clone())
+        .collect();
+
+    new_vec
+}
+
+
+pub fn array_from_vec_of_arrays<T: Clone>(vec: Vec<Array<T, Dim<[usize; 1]>>>) -> Array<T, Dim<[usize; 2]>> {
+    let num_rows = vec.len();
+    let num_cols = vec[0].len();
+    let mut new_vec: Vec<T> = Vec::new();
+    for arr in vec.into_iter() {
+        for val in arr.into_iter() {
+            new_vec.push(val.clone());
+        }
+    }
+
+    Array::from_shape_vec((num_rows, num_cols), new_vec).unwrap()
+}
+
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -73,5 +97,14 @@ mod tests {
         let answer = Array::from(vec![3,2,1]);
 
         assert_eq!(reorder_array(&array, &order), answer);
+    }
+
+    #[test]
+    fn test_reorder_vec() {
+        let vec = vec![1, 2, 3];
+        let order: Vec<usize> = vec![2, 1, 0];
+        let answer = vec![3, 2, 1];
+
+        assert_eq!(reorder_vec(&vec, order), answer);
     }
 }

@@ -23,7 +23,7 @@ impl Quadratic {
 
 
 impl Function for Quadratic {
-    fn call(&self, x: Array<f32, Dim<[usize; 1]>>) -> f32 {
+    fn call(&self, x: &Array<f32, Dim<[usize; 1]>>) -> f32 {
         x.dot(&x.clone().t())
     }
 }
@@ -31,7 +31,7 @@ impl Function for Quadratic {
 
 fn main() {
     let mu = Array::from(vec![4., 1.]);
-    let sigma = Array::from(vec![0., 0.1]);
+    let sigma = Array::from(vec![0.1, 0.1]);
     let mut nes = NES::new(
         Quadratic::new(), 
         mu, 

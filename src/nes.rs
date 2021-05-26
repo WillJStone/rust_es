@@ -4,7 +4,7 @@ use ndarray::{Array, Axis, Dim, ViewRepr, concatenate};
 use partial_min_max::max;
 use rayon::prelude::*;
 
-use crate::utils::{argsort, random_gaussian_matrix, random_gaussian_vector, reorder_array};
+use crate::utils::{self, argsort, array_from_vec_of_arrays, random_gaussian_matrix, random_gaussian_vector, reorder_array, reorder_vec};
 use crate::evaluator::Function;
 
 
@@ -56,8 +56,8 @@ impl<T: Function + Clone + Sync> NES<T> {
     }
 
     pub fn step(&mut self) -> Array<f32, Dim<[usize; 1]>> {
-        let noise: Vec<Array<f32, Dim<[usize; 1]>>> = (0..self.population_size)
-            .map(|_| random_gaussian_vector(self.mu.len(), 0., 0.))
+        let mut noise: Vec<Array<f32, Dim<[usize; 1]>>> = (0..self.population_size)
+            .map(|_| random_gaussian_vector(self.mu.len(), 0., 1.))
             .collect();
 
         let scaled_noise: Vec<Array<f32, Dim<[usize; 1]>>> = noise
@@ -65,21 +65,40 @@ impl<T: Function + Clone + Sync> NES<T> {
             .map(|x| x * &self.sigma)
             .collect();
 
-        let mut population: Vec<Array<f32, Dim<[usize; 1]>>> = scaled_noise
+        let population: Vec<Array<f32, Dim<[usize; 1]>>> = scaled_noise
             .iter()
             .map(|x| &self.mu + x)
             .collect();
 
         let fitness: Vec<f32> = population
-            .par_iter_mut()
-            .map(|x| self.callable.clone().call(x.clone()))
+            .par_iter()
+            .map(|x| self.callable.clone().call(x))
             .collect();
 
         let fitness = Array::from(fitness);
-        let order = argsort(&fitness);
-        let ordered_fitness = reorder_array(&fitness, &order);
+        let utility: Array<f32, Dim<[usize; 1]>>;
+        if self.fitness_shaping {
+            let order = argsort(&fitness);
+            noise = reorder_vec(&noise, order.clone());
+            utility = self.utility_function();
+        } else {
+            utility = fitness;
+        }
 
-        fitness
+        let noise = array_from_vec_of_arrays(noise);
+        let d = utility.dot(&noise);
+        let delta_mu = &self.sigma * self.learning_rate_mu * d * 1./self.population_size as f32;
+        self.mu = &self.mu + delta_mu;
+        
+        
+        // let delta_mu: Array<f32, Dim<[usize; 1]>> = self.sigma
+        //     .iter()
+        //     .map(|x| x * self.learning_rate_mu * 1./self.population_size as f32 * utility.dot(&noise))
+        //     .collect();
+        // //let fitness = Array::from(utility);
+
+        // utility
+        self.mu.clone()
 
     }
 }
@@ -101,7 +120,7 @@ mod tests {
     
     
     impl Function for Evaluator {
-        fn call(&self, x: Array<f32, Dim<[usize; 1]>>) -> f32 {
+        fn call(&self, x: &Array<f32, Dim<[usize; 1]>>) -> f32 {
             42.
         }
     }
