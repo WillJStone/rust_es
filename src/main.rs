@@ -1,5 +1,6 @@
 pub extern crate ndarray;
 pub extern crate ndarray_rand;
+pub extern crate ndarray_parallel;
 
 use ndarray::{Array, Dim};
 
@@ -30,8 +31,8 @@ impl Function for Quadratic {
 
 
 fn main() {
-    let mu = Array::from(vec![4., 1.]);
-    let sigma = Array::from(vec![0.1, 0.1]);
+    let mu = Array::from(vec![4., 8.]);
+    let sigma = Array::from(vec![1., 1.]);
     let mut nes = NES::new(
         Quadratic::new(), 
         mu, 
@@ -39,10 +40,13 @@ fn main() {
         10, 
         0.9, 
         0.1,
-        false,
+        true,
     );
 
-    let fitness = nes.step();
+    for i in 0..500 {
+        nes.step();
+        println!("mu at step {}: {:?}", i, nes.mu);
+    }
 
-    println!("{:?}", fitness);
+    
 }
