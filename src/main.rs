@@ -33,19 +33,20 @@ impl Function for Quadratic {
 fn main() {
     let mu = Array::from(vec![4., 8.]);
     let sigma = Array::from(vec![1., 1.]);
+    let callable = Quadratic::new();
     let mut nes = NES::new(
-        Quadratic::new(), 
+        callable.clone(), 
         mu, 
         sigma, 
         10, 
-        0.9, 
+        1.5, 
         0.1,
         true,
     );
 
-    for i in 0..500 {
+    for i in 0..5000 {
         nes.step();
-        println!("mu at step {}: {:?}", i, nes.mu);
+        println!("fitness at step {}: {:?}", i, callable.call(&nes.mu));
     }
 
     
