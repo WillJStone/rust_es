@@ -4,12 +4,12 @@ pub extern crate ndarray_parallel;
 
 use ndarray::{Array, Dim};
 
-use crate::evaluator::Function;
+use crate::objective::Objective;
 use crate::nes::NES;
 
 mod nes;
 mod utils;
-mod evaluator;
+mod objective;
 
 #[derive(Clone)]
 pub struct Quadratic {
@@ -23,7 +23,7 @@ impl Quadratic {
 }
 
 
-impl Function for Quadratic {
+impl Objective for Quadratic {
     fn call(&self, x: &Array<f32, Dim<[usize; 1]>>) -> f32 {
         x.dot(&x.clone().t())
     }

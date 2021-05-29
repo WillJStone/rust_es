@@ -6,10 +6,10 @@ use rayon::prelude::*;
 use ndarray_parallel::prelude::*;
 
 use crate::utils::{self, argsort, array_from_vec_of_arrays, random_gaussian_matrix, random_gaussian_vector, reorder_array, reorder_vec};
-use crate::evaluator::Function;
+use crate::objective::Objective;
 
 
-pub struct NES<T: Function + Clone + Sync> {
+pub struct NES<T: Objective + Clone + Sync> {
     callable: T,
     pub mu: Array<f32, Dim<[usize; 1]>>,
     sigma: Array<f32, Dim<[usize; 1]>>,
@@ -20,7 +20,7 @@ pub struct NES<T: Function + Clone + Sync> {
 }
 
 
-impl<T: Function + Clone + Sync> NES<T> {
+impl<T: Objective + Clone + Sync> NES<T> {
     pub fn new(
         callable: T, 
         mu: Array<f32, Dim<[usize; 1]>>,
@@ -115,7 +115,7 @@ mod tests {
     }
     
     
-    impl Function for Evaluator {
+    impl Objective for Evaluator {
         fn call(&self, x: &Array<f32, Dim<[usize; 1]>>) -> f32 {
             42.
         }
