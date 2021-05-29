@@ -1,11 +1,8 @@
-use std::cmp;
-
-use ndarray::{Array, Axis, Dim, ViewRepr, concatenate};
+use ndarray::{Array, Dim};
 use partial_min_max::max;
 use rayon::prelude::*;
-use ndarray_parallel::prelude::*;
 
-use crate::utils::{self, argsort, array_from_vec_of_arrays, random_gaussian_matrix, random_gaussian_vector, reorder_array, reorder_vec};
+use crate::utils::{argsort, array_from_vec_of_arrays, random_gaussian_vector, reorder_vec};
 use crate::objective::Objective;
 
 
@@ -116,7 +113,7 @@ mod tests {
     
     
     impl Objective for Evaluator {
-        fn call(&self, x: &Array<f32, Dim<[usize; 1]>>) -> f32 {
+        fn call(&self, _x: &Array<f32, Dim<[usize; 1]>>) -> f32 {
             42.
         }
     }
@@ -125,7 +122,7 @@ mod tests {
     fn test_nes_new() {
         let mu = Array::from(vec![1., 1.]);
         let sigma = Array::from(vec![1., 1.]);
-        let nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1, false);
+        let _nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1, false);
     }
 
     #[test]
@@ -134,8 +131,6 @@ mod tests {
         let sigma = Array::from(vec![1., 1.]);
         let mut nes = NES::new(Evaluator::new(), mu, sigma, 10, 0.1, 0.1, false);
 
-        //let fitness = nes.step();
-
-        //assert_eq!(fitness.len(), 10);
+        nes.step();
     }
 }
