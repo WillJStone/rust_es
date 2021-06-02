@@ -46,7 +46,6 @@ fn main() {
 
     for i in 0..5000 {
         nes.step();
-        println!("fitness at step {}: {:?}", i, callable.call(&nes.mu));
     }
 
     

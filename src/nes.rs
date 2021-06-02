@@ -1,4 +1,5 @@
 use ndarray::{Array, Dim};
+use ndarray_stats::QuantileExt;
 use partial_min_max::max;
 use rayon::prelude::*;
 
@@ -74,6 +75,7 @@ impl<T: Objective + Clone + Sync> NES<T> {
             .collect();
 
         let fitness = Array::from(fitness);
+        println!("Min fitness: {}", fitness.min().unwrap());
         let utility: Array<f32, Dim<[usize; 1]>>;
         if self.fitness_shaping {
             let order = argsort(&fitness);
