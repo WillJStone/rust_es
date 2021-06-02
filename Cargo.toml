@@ -1,5 +1,5 @@
 [package]
-name = "nes"
+name = "rust_es"
 version = "0.1.0"
 authors = ["asdf <asdf>"]
 edition = "2018"

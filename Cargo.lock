@@ -256,19 +256,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "nes"
-version = "0.1.0"
-dependencies = [
- "clippy",
- "ndarray 0.15.2",
- "ndarray-parallel",
- "ndarray-rand",
- "partial-min-max",
- "rand",
- "rayon",
-]
-
-[[package]]
 name = "num-complex"
 version = "0.2.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -443,6 +430,19 @@ dependencies = [
  "blake2b_simd",
  "constant_time_eq",
  "crossbeam-utils",
+]
+
+[[package]]
+name = "rust_es"
+version = "0.1.0"
+dependencies = [
+ "clippy",
+ "ndarray 0.15.2",
+ "ndarray-parallel",
+ "ndarray-rand",
+ "partial-min-max",
+ "rand",
+ "rayon",
 ]
 
 [[package]]
