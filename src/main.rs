@@ -1,6 +1,7 @@
 pub extern crate ndarray;
 pub extern crate ndarray_rand;
 pub extern crate ndarray_parallel;
+extern crate openblas_src;
 
 use ndarray::{Array, Dim};
 
@@ -38,7 +39,7 @@ fn main() {
         callable.clone(), 
         mu, 
         sigma, 
-        10, 
+        100, 
         1.5, 
         0.1,
         true,
@@ -46,6 +47,7 @@ fn main() {
 
     for i in 0..5000 {
         nes.step();
+        println!("{} step complete", i);
     }
 
     
